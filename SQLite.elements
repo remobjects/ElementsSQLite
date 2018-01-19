@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <PropertyGroup>
+    <ProductVersion>3.5</ProductVersion>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <AllowLegacyCreate>False</AllowLegacyCreate>
+    <Name>SQLite</Name>
+    <RootNamespace>Sugar</RootNamespace>
+    <ProjectGuid>{0d5b253d-762b-42d9-bfd2-3c217e07cf52}</ProjectGuid>
+    <BinaryName>ElementsSQLite</BinaryName>>
+    <DefaultUses>Foundation</DefaultUses>
+    <DeploymentTargetVersion>10.7</DeploymentTargetVersion>
+    <AllowLegacyOutParams>False</AllowLegacyOutParams>
+    <CreateHeaderFile>False</CreateHeaderFile>
+    <MangleTypeNames>True</MangleTypeNames>
+    <DefaultUses>RemObjects.Elements.RTL</DefaultUses>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <Optimize>False</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;OSX</DefineConstants>
+    <CaptureConsoleOutput>False</CaptureConsoleOutput>
+    <StartMode>Project</StartMode>
+    <XmlDoc>False</XmlDoc>
+    <XmlDocWarningLevel>WarningOnPublicMembers</XmlDocWarningLevel>
+    <EnableUnmanagedDebugging>False</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <Optimize>True</Optimize>
+    <OutputPath>.\bin</OutputPath>
+    <GenerateDebugInfo>True</GenerateDebugInfo>
+    <EnableAsserts>False</EnableAsserts>
+    <DefineConstants>OSX</DefineConstants>
+    <CaptureConsoleOutput>False</CaptureConsoleOutput>
+    <StartMode>Project</StartMode>
+    <XmlDoc>False</XmlDoc>
+    <XmlDocWarningLevel>WarningOnPublicMembers</XmlDocWarningLevel>
+    <EnableUnmanagedDebugging>False</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Target)' == 'Echoes' ">
+    <Mode>Echoes</Mode>
+    <OutputType>Library</OutputType>
+    <BinaryName>Elements.SQLite</BinaryName>>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Target)' == 'Toffee.macOS' ">
+    <Mode>Toffee</Mode>
+    <OutputType>StaticLibrary</OutputType>
+    <SDK>OS X</SDK>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Elements">
+      <Target>Echoes</Target>
+    </Reference>
+    <Reference Include="libElements">
+      <Target>Toffee.macOS</Target>
+    </Reference>
+    <Reference Include="libToffee">
+      <Target>Toffee.macOS</Target>
+    </Reference>
+    <Reference Include="libsqlite3">
+      <Target>Toffee.macOS</Target>
+    </Reference>
+    <Reference Include="libxml2">
+      <Target>Toffee.macOS</Target>
+    </Reference>
+    <Reference Include="rtl">
+      <Target>Toffee.macOS</Target>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
+  <ItemGroup>
+    <Compile Include="SQLite.pas" />
+    <Compile Include="Globals.pas" />
+  </ItemGroup>
+</Project>
