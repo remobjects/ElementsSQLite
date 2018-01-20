@@ -176,7 +176,7 @@ method sqlite3_errmsg16(handle: IntPtr): IntPtr; external;
 {$ENDIF}
 
 {$IFDEF ECHOES OR COCOA}
-method Throw(handle: IntPtr; res: Integer);
+method CheckSQLiteResultAndRaiseException(handle: IntPtr; res: Integer);
 begin
   case res of
     0: begin

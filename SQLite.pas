@@ -68,14 +68,21 @@ type
     property ColumnName[aIndex: Integer]: String read get_ColumnName;
     property ColumnIndex[aName: String]: Integer read get_ColumnIndex;
     // starts before the first record:
-    method MoveNext: Boolean;
+    method Next: Boolean;
 
     property IsNull[aIndex: Integer]: Boolean read get_IsNull;
-    method GetInt(aIndex: Integer): nullable Integer;
+    method GetInt32(aIndex: Integer): nullable Integer;
     method GetInt64(aIndex: Integer): nullable Int64;
     method GetDouble(aIndex: Integer): nullable Double;
     method GetBytes(aIndex: Integer): array of {$IFDEF JAVA}SByte{$ELSE}Byte{$ENDIF};
     method GetString(aIndex: Integer): String;
+
+    method GetInt32(aName: String): nullable Integer;
+    method GetInt64(aName: String): nullable Int64;
+    method GetDouble(aName: String): nullable Double;
+    method GetBytes(aName: String): array of {$IFDEF JAVA}SByte{$ELSE}Byte{$ENDIF};
+    method GetString(aName: String): String;
+
     method Close;//{$IFDEF ECHOES}implements IDisposable.Dispose;{$ENDIF}
     {$IFDEF COCOA}finalizer;{$ENDIF}
   end;
@@ -109,7 +116,7 @@ type
 
 implementation
 
-constructor SQLiteConnection(aFilename: String; aReadOnly: Boolean := false; aCreateIfNeeded: Boolean := true);
+constructor SQLiteConnection(aFilename: String; aReadOnly: Boolean := false; aCreateIfNeeded: Boolean := false);
 begin
   {$IFDEF PUREJAVA}
   &Class.forName('org.sqlite.JDBC');
@@ -125,13 +132,13 @@ begin
   var lRes:= sqlite3_open_v2(aFilename, var fHandle,
     (if aReadOnly then SQLITE_OPEN_READONLY else SQLITE_OPEN_READWRITE) or
     (if aCreateIfNeeded then SQLITE_OPEN_CREATE else 0), nil);
-  Throw(fHandle, lRes);
+  CheckSQLiteResultAndRaiseException(fHandle, lRes);
   {$ELSEIF COCOA}
-  var lRes:= sqlite3_open_v2(NSString(aFilename), ^^sqlite3(@fHandle),
+  var lRes:= sqlite3_open_v2(NSString(aFilename).UTF8String, ^^sqlite3(@fHandle),
     (if aReadOnly then SQLITE_OPEN_READONLY else SQLITE_OPEN_READWRITE) or
     (if aCreateIfNeeded then SQLITE_OPEN_CREATE else 0), nil);
-  Throw(fHandle, lRes);
-{$ELSE}
+  CheckSQLiteResultAndRaiseException(fHandle, lRes);
+  {$ELSE}
   {$ERROR Unsupported platform}
   {$ENDIF}
 end;
@@ -189,7 +196,7 @@ begin
   {$IFDEF COCOA}
   var res: IntPtr := nil;
   var data := NSString(aSQL).UTF8String;
-  Throw(fHandle, sqlite3_prepare_v2(^sqlite3(fHandle), data, strlen(data), ^^sqlite3_stmt(@res), nil));
+  CheckSQLiteResultAndRaiseException(fHandle, sqlite3_prepare_v2(^sqlite3(fHandle), data, strlen(data), ^^sqlite3_stmt(@res), nil));
   for i: Integer := 0 to length(aArgs) -1 do begin
     var o := aArgs[i];
     if o = nil then
@@ -211,7 +218,7 @@ begin
   {$ELSE}
   var res := IntPtr.Zero;
   var data := System.Text.Encoding.UTF8.GetBytes(aSQL);
-  Throw(fHandle, sqlite3_prepare_v2(fHandle, data, data.Length, var res, IntPtr.Zero));
+  CheckSQLiteResultAndRaiseException(fHandle, sqlite3_prepare_v2(fHandle, data, data.Length, var res, IntPtr.Zero));
   for i: Integer := 0 to length(aArgs) -1 do begin
     var o := aArgs[i];
     if o = nil then
@@ -258,7 +265,7 @@ begin
   var &step := {$IFDEF ECHOES}sqlite3_step(res){$ELSE}sqlite3_step(^sqlite3_stmt(res)){$ENDIF};
   if &step <> {{$IFDEF ECHOES}{{$ENDIF}SQLITE_DONE then begin
     {$IFDEF ECHOES}sqlite3_finalize(res){$ELSE} sqlite3_finalize(^sqlite3_stmt(res)){$ENDIF};
-    Throw(fHandle, &step);
+    CheckSQLiteResultAndRaiseException(fHandle, &step);
     exit 0;
   end;
   var revs := {$IFDEF ECHOES}sqlite3_last_insert_rowid(fHandle){$ELSE}sqlite3_last_insert_rowid(^sqlite3(fHandle)){$ENDIF};
@@ -285,7 +292,7 @@ begin
   var &step := {$IFDEF ECHOES}sqlite3_step(res){$ELSE}sqlite3_step(^sqlite3_stmt(res)){$ENDIF};
   if &step <> SQLITE_DONE then begin
     {$IFDEF ECHOES}sqlite3_finalize(res){$ELSE} sqlite3_finalize(^sqlite3_stmt(res)){$ENDIF};
-    Throw(fHandle, &step);
+    CheckSQLiteResultAndRaiseException(fHandle, &step);
     exit 0;
   end;
   var revs := {$IFDEF ECHOES}sqlite3_changes(fHandle){$ELSE}sqlite3_changes(^sqlite3(fHandle)){$ENDIF};
@@ -404,8 +411,7 @@ begin
 end;
 {$ENDIF}
 
-
-method SQLiteQueryResult.MoveNext: Boolean;
+method SQLiteQueryResult.Next: Boolean;
 begin
   {$IFDEF PUREJAVA}
   exit mapped.next;
@@ -414,7 +420,7 @@ begin
   if res = SQLITE_ROW then exit true;
   if res = SQLITE_DONE then exit false;
 
-  Throw(fDB, fRes);
+  CheckSQLiteResultAndRaiseException(fDB, fRes);
   exit false; // unreachable
   {$ELSEIF COCOA}
 
@@ -422,7 +428,7 @@ begin
   if res = SQLITE_ROW then exit true;
   if res = SQLITE_DONE then exit false;
 
-  Throw(fDB, fRes);
+  CheckSQLiteResultAndRaiseException(fDB, fRes);
   exit false; // unreachable
   {$ELSEIF ANDROID}
   exit mapped.moveToNext;
@@ -431,10 +437,10 @@ begin
   {$ENDIF}
 end;
 
-method SQLiteQueryResult.GetInt(aIndex: Integer): nullable Integer;
+method SQLiteQueryResult.GetInt32(aIndex: Integer): nullable Integer;
 begin
   {$IFDEF PUREJAVA}
-  exit if mapped.getObject(1 + aIndex) = nil then nil else nullable Integer(mapped.getInt(1 + aIndex));
+  exit if mapped.getObject(1 + aIndex) = nil then nil else nullable Integer(mapped.GetInt32(1 + aIndex));
   {$ELSEIF ECHOES}
   if sqlite3_column_type(fRes, aIndex) = SQLITE_NULL then exit nil;
   exit sqlite3_column_int(fRes, aIndex);
@@ -442,7 +448,7 @@ begin
   if sqlite3_column_type(^sqlite3_stmt(fRes), aIndex) = SQLITE_NULL then exit nil;
   exit sqlite3_column_int(^sqlite3_stmt(fRes), aIndex);
   {$ELSEIF ANDROID}
-  exit if mapped.isNull(aIndex) then nil else nullable Integer(mapped.getInt(aIndex));
+  exit if mapped.isNull(aIndex) then nil else nullable Integer(mapped.GetInt32(aIndex));
   {$ELSE}
   {$ERROR Unsupported platform}
   {$ENDIF}
@@ -527,6 +533,31 @@ begin
   {$ENDIF}
 end;
 
+method SQLiteQueryResult.GetInt32(aName: String): nullable Integer;
+begin
+  result := GetInt32(ColumnIndex[aName]);
+end;
+
+method SQLiteQueryResult.GetInt64(aName: String): nullable Int64;
+begin
+  result := GetInt64(ColumnIndex[aName]);
+end;
+
+method SQLiteQueryResult.GetDouble(aName: String): nullable Double;
+begin
+  result := GetDouble(ColumnIndex[aName]);
+end;
+
+method SQLiteQueryResult.GetBytes(aName: String): array of {$IFDEF JAVA}SByte{$ELSE}Byte{$ENDIF};
+begin
+  result := GetBytes(ColumnIndex[aName]);
+end;
+
+method SQLiteQueryResult.GetString(aName: String): String;
+begin
+  result := GetString(ColumnIndex[aName]);
+end;
+
 method SQLiteQueryResult.get_IsNull(aIndex: Integer): Boolean;
 begin
   {$IFDEF PUREJAVA}
@@ -608,7 +639,7 @@ end;
 constructor SQLiteException(s: String);
 begin
   {$IFDEF COCOA}
-  exit inherited initWithName('SQLite') reason(s) userInfo(nil);
+  inherited constructor withName('SQLite') reason(s) userInfo(nil);
   {$ELSE}
   inherited constructor(s);
   {$ENDIF}
