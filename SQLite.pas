@@ -26,7 +26,7 @@ type
     method get_InTransaction: Boolean;
   protected
   public
-    constructor(aFilename: String; aReadOnly: Boolean := false; aCreateIfNeeded: Boolean := true);
+    constructor(aFilename: String; aReadOnly: Boolean := false; aCreateIfNeeded: Boolean := false);
 
     property InTransaction: Boolean read get_InTransaction;
     method BegInTransaction;
