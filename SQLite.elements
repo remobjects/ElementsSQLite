@@ -46,6 +46,7 @@
   <PropertyGroup Condition=" '$(Target)' == 'Toffee.macOS' ">
     <Mode>Toffee</Mode>
     <OutputType>StaticLibrary</OutputType>
+    <Architecture>x86_64;arm64</Architecture>
     <SDK>OS X</SDK>
   </PropertyGroup>
   <ItemGroup>
