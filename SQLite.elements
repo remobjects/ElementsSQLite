@@ -6,7 +6,7 @@
     <AllowLegacyCreate>False</AllowLegacyCreate>
     <Name>SQLite</Name>
     <RootNamespace>Sugar</RootNamespace>
-    <ProjectGuid>{0d5b253d-762b-42d9-bfd2-3c217e07cf52}</ProjectGuid>
+    <ProjectGuid>{0D5B253D-762B-42D9-BFD2-3C217E07CF52}</ProjectGuid>
     <BinaryName>ElementsSQLite</BinaryName>
     <DefaultUses>Foundation</DefaultUses>
     <DeploymentTargetVersion>10.7</DeploymentTargetVersion>
@@ -42,6 +42,7 @@
     <Mode>Echoes</Mode>
     <OutputType>Library</OutputType>
     <BinaryName>Elements.SQLite</BinaryName>
+    <TargetFramework>.NETStandard2.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Target)' == 'Toffee.macOS' ">
     <Mode>Toffee</Mode>
@@ -49,29 +50,19 @@
     <Architecture>x86_64;arm64</Architecture>
     <SDK>OS X</SDK>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Elements">
-      <Target>Echoes</Target>
-    </Reference>
-    <Reference Include="libElements">
-      <Target>Toffee.macOS</Target>
-    </Reference>
-    <Reference Include="libToffee">
-      <Target>Toffee.macOS</Target>
-    </Reference>
-    <Reference Include="libsqlite3">
-      <Target>Toffee.macOS</Target>
-    </Reference>
-    <Reference Include="libxml2">
-      <Target>Toffee.macOS</Target>
-    </Reference>
-    <Reference Include="rtl">
-      <Target>Toffee.macOS</Target>
-    </Reference>
-  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
   <ItemGroup>
     <Compile Include="SQLite.pas" />
     <Compile Include="Globals.pas" />
+    <Compile Include="AssemblyInfo.pas" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Target)' == 'Toffee.macOS'">
+    <Reference Include="Elements">
+      <HintPath>\Users\mh\Code\RTL2\Source\bin\Debug\macOS\libElements.fx</HintPath>
+    </Reference>
+    <Reference Include="libToffee" />
+    <Reference Include="libsqlite3" />
+    <Reference Include="libxml2" />
+    <Reference Include="rtl" />
   </ItemGroup>
 </Project>
