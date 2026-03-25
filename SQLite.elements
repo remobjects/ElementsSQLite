@@ -57,12 +57,23 @@
     <Compile Include="AssemblyInfo.pas" />
   </ItemGroup>
   <ItemGroup Condition="'$(Target)' == 'Toffee.macOS'">
-    <Reference Include="Elements">
-      <HintPath>\Users\mh\Code\RTL2\Source\bin\Debug\macOS\libElements.fx</HintPath>
-    </Reference>
     <Reference Include="libToffee" />
     <Reference Include="libsqlite3" />
     <Reference Include="libxml2" />
     <Reference Include="rtl" />
+    <Reference Include="libElements">
+      <HintPath>..\RTL2\Bin\Toffee\macOS\libElements.fx</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Target)' == 'Echoes'">
+    <Reference Include="Elements">
+      <HintPath>..\RTL2\Source\bin\Debug\NETStandard\Elements.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Echoes">
+      <HintPath>..\RTL2\Source\bin\Debug\NETStandard\Echoes.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
 </Project>

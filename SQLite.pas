@@ -352,7 +352,7 @@ begin
   if length(arr) = 0 then exit [];
   result := new String[arr.length];
   for i: Integer := 0 to arr.length -1 do begin
-    result[i] := arr[i]:toString();
+    result[i] := arr[i]:ToString();
   end;
 end;
 
@@ -373,7 +373,7 @@ begin
     else if val is array of SByte then
       st.bindBlob(i + 1, array of SByte(val))
     else
-      st.bindString(i + 1, val.toString);
+      st.bindString(i + 1, val.ToString);
   end;
 end;
 {$ENDIF}
@@ -631,11 +631,7 @@ begin
   {$ENDIF}
 end;
 
-
-
-
 {$IFDEF ECHOES or COCOA}
-
 constructor SQLiteException(s: String);
 begin
   {$IFDEF COCOA}
@@ -661,4 +657,5 @@ begin
   exit  key.getLong(1)
 end;
 {$ENDIF}
+
 end.
